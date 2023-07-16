@@ -41,17 +41,17 @@ function print(first, ...args){
   log("\n");
 };
 
-const fail = (text) => {
+function fail(text){
   Deno.core.ops.op_fail(text);
 }
 
-const pass = (text) => {
+function pass(text){
   Deno.core.ops.op_pass(text);
 }
     "#;
     let js_code = format!(
         r#"const RESPONSE = {};{};{}"#,
-        response, prelim_code, request_data["script"]
+        response, request_data["script"], prelim_code
     );
     script::execute(js_code)?;
 
