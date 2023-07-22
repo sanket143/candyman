@@ -4,7 +4,7 @@ use crate::md::parser;
 use anyhow::Result;
 use std::fs;
 
-pub fn execute(filename: &str) -> Result<String> {
+pub fn execute(filename: &str) -> Result<()> {
     let content = fs::read_to_string(filename)?;
     let request_data = parser::get_request_data(content.as_str());
     let response = request_data.call()?;
@@ -47,7 +47,7 @@ function pass(text){
         script::execute(js_code)?;
     }
 
-    Ok(String::new())
+    Ok(())
 }
 
 #[cfg(test)]

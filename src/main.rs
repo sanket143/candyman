@@ -29,15 +29,16 @@ fn evaluate(text: String) -> Result<Action> {
     let command = tokens[0];
 
     match command {
-        "e" => {
-            let response = client::execute(tokens[1])?;
-            println!("{}", response);
+        "e" | "execute" => {
+            if tokens.len() < 2 {
+                return Ok(Action::Continue);
+            }
+
+            client::execute(tokens[1])?;
             Ok(Action::Continue)
         }
-        "test" => {
-            let response = client::execute(tokens[1])?;
-            println!("{}", response);
-            Ok(Action::Continue)
+        "c" | "create" => {
+            todo!("create a markdown file")
         }
         "q" => Ok(Action::Quit),
         _ => Ok(Action::Continue),
