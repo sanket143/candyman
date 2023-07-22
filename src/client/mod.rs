@@ -24,7 +24,7 @@ pub fn execute(filename: &str) -> Result<String> {
     let prelim_code = r#"
 function log(item){
   if(typeof item == "object"){
-    Deno.core.print(JSON.stringify(item));
+    Deno.core.ops.op_json_print(JSON.stringify(item));
   } else {
     Deno.core.print(String(item));
   }
