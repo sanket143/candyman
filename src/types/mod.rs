@@ -18,7 +18,7 @@ pub struct Queso {
     pub method: String,
     pub uri: String,
     pub body: String,
-    pub body_type: String,
+    pub content_type: String,
     pub tests: Vec<QuesoTest>,
 }
 
@@ -31,17 +31,17 @@ impl Queso {
         self.uri = uri;
     }
 
-    pub fn add_body_type(&mut self, body_type: String) {
-        let body_type = match body_type.as_str() {
+    pub fn add_content_type(&mut self, content_type: String) {
+        let content_type = match content_type.as_str() {
             "json" => "application/json",
             "text" => "text/plain",
             "html" => "text/html",
             "graphql" => "application/json",
-            _ => body_type.as_str(),
+            _ => content_type.as_str(),
         }
         .to_owned();
 
-        self.body_type = body_type.clone();
+        self.content_type = content_type.clone();
     }
 
     pub fn add_body(&mut self, body: String) {
@@ -64,7 +64,7 @@ impl Queso {
 
     pub fn call(&self) -> Result<String> {
         let response = ureq::request(self.method.as_str(), self.uri.as_str())
-            .set("content-type", &self.body_type)
+            .set("content-type", &self.content_type)
             .send_string(&self.body.as_str())?
             .into_string()?;
 

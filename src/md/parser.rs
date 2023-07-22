@@ -49,7 +49,7 @@ pub fn get_request_data(markdown: &str) -> Queso {
                         "body" => {
                             let typename = typename.clone().unwrap_or(String::from("text/plain"));
 
-                            queso.add_body_type(typename.clone());
+                            queso.add_content_type(typename.clone());
 
                             if typename == "graphql" {
                                 let variables = iter.peek();
