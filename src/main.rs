@@ -1,6 +1,7 @@
 mod client;
 mod lexer;
 mod md;
+mod types;
 
 use anyhow::Result;
 

@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use crate::types::Queso;
 use markdown::{tokenize, Block, Span};
 
 fn get_text_from_span(span: &Span) -> &str {
@@ -11,35 +10,74 @@ fn get_text_from_span(span: &Span) -> &str {
     }
 }
 
-fn get_text_from_spans(spans: Vec<Span>) -> String {
+fn get_text_from_spans(spans: &Vec<Span>) -> String {
     spans.iter().fold(String::from(""), |mut acc, span| {
         acc.push_str(get_text_from_span(span));
         acc
     })
 }
 
-pub fn get_request_data(markdown: &str) -> HashMap<String, String> {
+pub fn get_request_data(markdown: &str) -> Queso {
     let tokens = tokenize(markdown);
-    let mut section = String::new();
-    let mut request_values = HashMap::<String, String>::new();
+    let mut section: Option<String> = None;
+    let mut queso = Queso::default();
+    let mut iter = tokens.iter().peekable();
 
-    for token in tokens {
+    while let Some(token) = iter.next() {
         match token {
             Block::Header(spans, ..) => {
-                section = get_text_from_spans(spans).to_lowercase();
+                section = Some(get_text_from_spans(&spans));
             }
             Block::Paragraph(spans) => {
-                let value = get_text_from_spans(spans);
-                request_values.insert(section.clone(), value);
+                if let Some(section_name) = section.clone() {
+                    let value = get_text_from_spans(&spans);
+                    match section_name.to_lowercase().as_str() {
+                        "method" => {
+                            queso.add_method(value);
+                        }
+                        "uri" => {
+                            queso.add_uri(value);
+                        }
+                        _ => {}
+                    }
+                    section = None;
+                }
             }
-            Block::CodeBlock(_type, value) => {
-                request_values.insert(section.clone(), value);
+            Block::CodeBlock(typename, value) => {
+                if let Some(section_name) = section.clone() {
+                    match section_name.to_lowercase().as_str() {
+                        "body" => {
+                            let typename = typename.clone().unwrap_or(String::from("text/plain"));
+
+                            queso.add_body_type(typename.clone());
+
+                            if typename == "graphql" {
+                                let variables = iter.peek();
+                                if let Some(Block::CodeBlock(_, variables)) = variables {
+                                    queso.add_graphql_body(
+                                        value.clone(),
+                                        Some(variables.to_owned()),
+                                    );
+                                } else {
+                                    queso.add_graphql_body(value.clone(), None);
+                                }
+                            } else {
+                                queso.add_body(value.clone());
+                            }
+                        }
+                        _ => {}
+                    }
+                    if section_name.to_lowercase().starts_with("[test]") {
+                        queso.add_test((section_name.clone(), value.clone()));
+                    }
+                    section = None;
+                }
             }
             _ => {}
         };
     }
 
-    request_values
+    queso
 }
 
 #[cfg(test)]
@@ -68,10 +106,10 @@ print("Hello"); // should be executed after the response is received
         println!("{:#?}", request_data);
 
         assert_eq!(
-            request_data["uri"],
+            request_data.uri,
             "https://graphql.api.apollographql.com/api/graphql",
         );
-        assert_eq!(request_data["method"], "POST");
-        assert_eq!(request_data["body"], "Body");
+        assert_eq!(request_data.method, "POST");
+        assert_eq!(request_data.body, "Body");
     }
 }

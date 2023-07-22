@@ -2,25 +2,12 @@ mod script;
 
 use crate::md::parser;
 use anyhow::Result;
-use std::collections::HashMap;
 use std::fs;
-
-fn get_response_from_request_data(request_data: HashMap<String, String>) -> Result<String> {
-    let response = ureq::request(
-        request_data["method"].as_str(),
-        request_data["uri"].as_str(),
-    )
-    .set("content-type", "application/json")
-    .send_string(request_data["body"].as_str())?
-    .into_string()?;
-
-    Ok(response)
-}
 
 pub fn execute(filename: &str) -> Result<String> {
     let content = fs::read_to_string(filename)?;
     let request_data = parser::get_request_data(content.as_str());
-    let response = get_response_from_request_data(request_data.clone())?;
+    let response = request_data.call()?;
     let prelim_code = r#"
 function log(item){
   if(typeof item == "object"){
@@ -49,11 +36,16 @@ function pass(text){
   Deno.core.ops.op_pass(text);
 }
     "#;
-    let js_code = format!(
-        r#"const RESPONSE = {};{};{}"#,
-        response, request_data["script"], prelim_code
-    );
-    script::execute(js_code)?;
+
+    for test in request_data.tests {
+        let js_code = format!(
+            r#"const RESPONSE = {};{};{}"#,
+            response, test.script, prelim_code
+        );
+
+        println!("\x1b[33m{}\x1b[0m", test.name);
+        script::execute(js_code)?;
+    }
 
     Ok(String::new())
 }
@@ -78,7 +70,7 @@ POST
 "#,
         );
 
-        let response = super::get_response_from_request_data(request_data).unwrap();
+        let response = request_data.call().unwrap();
         println!("{}", response);
     }
 }
