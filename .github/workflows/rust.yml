@@ -4,9 +4,6 @@ on:
   create:
     tags:
       - v*
-  push:
-    tags:
-      - v*
 
 jobs:
   build-linux:
@@ -34,7 +31,6 @@ jobs:
           path: release
 
   build-m1:
-    needs: build
     runs-on: macos-latest
     steps:
       - name: Checkout code
