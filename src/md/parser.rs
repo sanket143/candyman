@@ -54,13 +54,24 @@ pub fn get_request_data(markdown: &str) -> Queso {
 
                             if typename == "graphql" {
                                 let variables = iter.peek();
-                                if let Some(Block::CodeBlock(_, variables)) = variables {
-                                    queso.add_graphql_body(
-                                        value.clone(),
-                                        Some(variables.to_owned()),
-                                    );
-                                } else {
-                                    queso.add_graphql_body(value.clone(), None);
+
+                                while let Some(block) = iter.peek() {
+                                    match block {
+                                        Block::Header(..) => {
+                                            queso.add_graphql_body(value.clone(), None);
+                                            break;
+                                        }
+                                        Block::CodeBlock(_, variables) => {
+                                            queso.add_graphql_body(
+                                                value.clone(),
+                                                Some(variables.to_owned()),
+                                            );
+                                            break;
+                                        }
+                                        _ => {
+                                            iter.next();
+                                        }
+                                    }
                                 }
                             } else {
                                 queso.add_body(value.clone());

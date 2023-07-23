@@ -1,4 +1,5 @@
 mod client;
+mod commands;
 mod lexer;
 mod md;
 mod types;
@@ -38,7 +39,13 @@ fn evaluate(text: String) -> Result<Action> {
             Ok(Action::Continue)
         }
         "c" | "create" => {
-            todo!("create a markdown file")
+            if tokens.len() < 2 {
+                println!("Give filename as the second argument");
+                return Ok(Action::Continue);
+            }
+
+            commands::create::call(tokens[1]);
+            Ok(Action::Continue)
         }
         "q" => Ok(Action::Quit),
         _ => Ok(Action::Continue),
