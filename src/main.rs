@@ -47,6 +47,10 @@ fn evaluate(text: String) -> Result<Action> {
             commands::create::call(tokens[1]);
             Ok(Action::Continue)
         }
+        "ls" => {
+            commands::list_files::call(&tokens);
+            Ok(Action::Continue)
+        }
         "q" => Ok(Action::Quit),
         _ => Ok(Action::Continue),
     }
