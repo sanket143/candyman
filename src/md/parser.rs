@@ -1,5 +1,6 @@
 use crate::types::Queso;
 use markdown::{tokenize, Block, Span};
+use toml::Table;
 
 fn get_text_from_span(span: &Span) -> &str {
     match span {
@@ -63,6 +64,29 @@ pub fn get_request_data(markdown: &str) -> Queso {
                                 }
                             } else {
                                 queso.add_body(value.clone());
+                            }
+                        }
+                        "request" => {
+                            if let Some(typename) = typename {
+                                if typename == "toml" {
+                                    let value = value.parse::<Table>().unwrap();
+                                    if let Some(uri) = value.get("uri") {
+                                        queso.add_uri(uri.as_str().unwrap().to_owned());
+                                    }
+
+                                    if let Some(method) = value.get("method") {
+                                        queso.add_method(method.as_str().unwrap().to_owned());
+                                    }
+                                }
+                            }
+                        }
+                        "headers" => {
+                            if let Some(typename) = typename {
+                                if typename == "json" {
+                                    queso.add_headers(ureq::serde_json::from_str(value).unwrap());
+                                } else {
+                                    println!("Headers code block typename should be json");
+                                }
                             }
                         }
                         _ => {}

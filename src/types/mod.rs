@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 use ureq::json;
 
@@ -18,6 +20,7 @@ pub struct Queso {
     pub method: String,
     pub uri: String,
     pub body: String,
+    pub headers: HashMap<String, String>,
     pub content_type: String,
     pub tests: Vec<QuesoTest>,
 }
@@ -44,6 +47,10 @@ impl Queso {
         self.content_type = content_type.clone();
     }
 
+    pub fn add_headers(&mut self, headers: HashMap<String, String>) {
+        self.headers = headers;
+    }
+
     pub fn add_body(&mut self, body: String) {
         self.body = body;
     }
@@ -63,10 +70,14 @@ impl Queso {
     }
 
     pub fn call(&self) -> Result<String> {
-        let response = ureq::request(self.method.as_str(), self.uri.as_str())
-            .set("content-type", &self.content_type)
-            .send_string(&self.body.as_str())?
-            .into_string()?;
+        let mut req = ureq::request(self.method.as_str(), self.uri.as_str())
+            .set("content-type", &self.content_type);
+
+        for (key, value) in &self.headers {
+            req = req.set(key, value);
+        }
+
+        let response = req.send_string(&self.body.as_str())?.into_string()?;
 
         Ok(response)
     }
