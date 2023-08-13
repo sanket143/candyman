@@ -4,28 +4,28 @@ use anyhow::Result;
 use ureq::json;
 
 #[derive(Debug, Default)]
-pub struct QuesoTest {
+pub struct Test {
     pub name: String,
     pub script: String,
 }
 
-impl QuesoTest {
+impl Test {
     pub fn new(name: String, script: String) -> Self {
         Self { name, script }
     }
 }
 
 #[derive(Debug, Default)]
-pub struct Queso {
+pub struct Candyman {
     pub method: String,
     pub uri: String,
     pub body: String,
     pub headers: HashMap<String, String>,
     pub content_type: String,
-    pub tests: Vec<QuesoTest>,
+    pub tests: Vec<Test>,
 }
 
-impl Queso {
+impl Candyman {
     pub fn add_method(&mut self, method: String) {
         self.method = method;
     }
@@ -64,8 +64,8 @@ impl Queso {
         self.body = body.to_string();
     }
 
-    pub fn add_test(&mut self, queso_test: (String, String)) {
-        let test = QuesoTest::new(queso_test.0, queso_test.1);
+    pub fn add_test(&mut self, test: (String, String)) {
+        let test = Test::new(test.0, test.1);
         self.tests.push(test);
     }
 

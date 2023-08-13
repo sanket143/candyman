@@ -1,4 +1,4 @@
-use crate::types::Queso;
+use crate::types::Candyman;
 use markdown::{tokenize, Block, Span};
 use toml::Table;
 
@@ -18,10 +18,10 @@ fn get_text_from_spans(spans: &Vec<Span>) -> String {
     })
 }
 
-pub fn get_request_data(markdown: &str) -> Queso {
+pub fn get_request_data(markdown: &str) -> Candyman {
     let tokens = tokenize(markdown);
     let mut section: Option<String> = None;
-    let mut queso = Queso::default();
+    let mut candyman = Candyman::default();
     let mut iter = tokens.iter().peekable();
 
     while let Some(token) = iter.next() {
@@ -34,10 +34,10 @@ pub fn get_request_data(markdown: &str) -> Queso {
                     let value = get_text_from_spans(&spans);
                     match section_name.to_lowercase().as_str() {
                         "method" => {
-                            queso.add_method(value);
+                            candyman.add_method(value);
                         }
                         "uri" => {
-                            queso.add_uri(value);
+                            candyman.add_uri(value);
                         }
                         _ => {}
                     }
@@ -50,7 +50,7 @@ pub fn get_request_data(markdown: &str) -> Queso {
                         "body" => {
                             let typename = typename.clone().unwrap_or(String::from("text/plain"));
 
-                            queso.add_content_type(typename.clone());
+                            candyman.add_content_type(typename.clone());
 
                             if typename == "graphql" {
                                 let variables = iter.peek();
@@ -58,11 +58,11 @@ pub fn get_request_data(markdown: &str) -> Queso {
                                 while let Some(block) = iter.peek() {
                                     match block {
                                         Block::Header(..) => {
-                                            queso.add_graphql_body(value.clone(), None);
+                                            candyman.add_graphql_body(value.clone(), None);
                                             break;
                                         }
                                         Block::CodeBlock(_, variables) => {
-                                            queso.add_graphql_body(
+                                            candyman.add_graphql_body(
                                                 value.clone(),
                                                 Some(variables.to_owned()),
                                             );
@@ -74,7 +74,7 @@ pub fn get_request_data(markdown: &str) -> Queso {
                                     }
                                 }
                             } else {
-                                queso.add_body(value.clone());
+                                candyman.add_body(value.clone());
                             }
                         }
                         "request" => {
@@ -82,11 +82,11 @@ pub fn get_request_data(markdown: &str) -> Queso {
                                 if typename == "toml" {
                                     let value = value.parse::<Table>().unwrap();
                                     if let Some(uri) = value.get("uri") {
-                                        queso.add_uri(uri.as_str().unwrap().to_owned());
+                                        candyman.add_uri(uri.as_str().unwrap().to_owned());
                                     }
 
                                     if let Some(method) = value.get("method") {
-                                        queso.add_method(method.as_str().unwrap().to_owned());
+                                        candyman.add_method(method.as_str().unwrap().to_owned());
                                     }
                                 }
                             }
@@ -94,7 +94,8 @@ pub fn get_request_data(markdown: &str) -> Queso {
                         "headers" => {
                             if let Some(typename) = typename {
                                 if typename == "json" {
-                                    queso.add_headers(ureq::serde_json::from_str(value).unwrap());
+                                    candyman
+                                        .add_headers(ureq::serde_json::from_str(value).unwrap());
                                 } else {
                                     println!("Headers code block typename should be json");
                                 }
@@ -103,7 +104,7 @@ pub fn get_request_data(markdown: &str) -> Queso {
                         _ => {}
                     }
                     if section_name.to_lowercase().starts_with("[test]") {
-                        queso.add_test((section_name.clone(), value.clone()));
+                        candyman.add_test((section_name.clone(), value.clone()));
                     }
                     section = None;
                 }
@@ -112,7 +113,7 @@ pub fn get_request_data(markdown: &str) -> Queso {
         };
     }
 
-    queso
+    candyman
 }
 
 #[cfg(test)]
