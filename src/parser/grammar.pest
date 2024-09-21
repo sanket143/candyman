@@ -1,0 +1,11 @@
+URI = { "[Uri]" }
+METHOD = { "[Method]" }
+HEADERS = { "[Headers]" }
+BODY_GRAPHQL_QUERY = { "[Body::GraphQLQuery]" }
+BODY_GRAPHQL_VARIABLES = { "[Body::GraphQLVariables]" }
+
+BLOCK_NAME = _{ URI | METHOD | HEADERS | BODY_GRAPHQL_QUERY | BODY_GRAPHQL_VARIABLES }
+BLOCK_CONTENT = { (ANY ~ !(BLOCK))+ }
+BLOCK = { BLOCK_NAME ~ "\n" ~ BLOCK_CONTENT }
+BLOCKS = _{ BLOCK ~ ("\n" ~ BLOCK)* }
+PROGRAM = { SOI ~ (BLOCKS) ~ EOI }
